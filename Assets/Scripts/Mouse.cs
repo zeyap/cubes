@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Mouse : MonoBehaviour {
 
 	Text cubeHit;
-	private Target target=Target.getInstance();
+	private GameInfo gameInfo=GameInfo.getInstance();
 
 	// Use this for initialization
 	void Start () {
@@ -18,13 +18,18 @@ public class Mouse : MonoBehaviour {
 		RaycastHit hit;
 		Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 		if (Physics.Raycast (ray, out hit)) {
-			if (hit.collider != null) {
-				cubeHit.text="Cube #" + hit.collider.name;
-			}
-			if (hit.collider.name==target.idx.ToString()&&Input.GetMouseButton(0)) {
-				cubeHit.text+=" Correct";
-				target.target.SetActive(true);
-				target.isFound = true;
+			if (gameInfo.isChooseEnabled) {
+				/*
+				if (hit.collider != null) {
+					cubeHit.text="Cube #" + hit.collider.name;
+				}
+				*/
+				if (hit.collider.name==gameInfo.targetIdx.ToString()&&Input.GetMouseButton(0)) {
+					//cubeHit.text+=" Correct";
+					gameInfo.target.SetActive(true);
+					gameInfo.isTargetFound = true;
+					//gameInfo.isChooseEnabled = false;
+				}
 			}
 		}
 	}
