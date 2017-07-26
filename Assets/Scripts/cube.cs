@@ -1,25 +1,23 @@
 ﻿//using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using System.Collections;
 
-public class cube : MonoBehaviour {
+public class Cube {
 
-	public Camera mainCamera;
+	public GameInfo gameInfo=GameInfo.getInstance();
 
 	public const int CubeNumber=3;//constant members in c# are best defined as static members of a class/struct
-	public GameObject cubePrefab;
-	public GameObject[] cubes;
-	public Vector3[] pos;
-	public Vector3[] shiftedPos;
-	public int[] posParams; //fixed size buffer fields may only be members of structs
+	public GameObject[] cubes= new GameObject[CubeNumber];
+	public GameObject[] trees= new GameObject[CubeNumber];
+	public Vector3[] pos = new Vector3[CubeNumber];
+	public Vector3[] shiftedPos = new Vector3[CubeNumber * 3];
+	public int[] posParams= new int[9 * CubeNumber]; //fixed size buffer fields may only be members of structs
+	//if new every round, a stackoverflow may be caused
 	public bool isPosDuplicate=true;
 	public bool notWithinCube=true;
 
 	const int cubeScale = 4;//the greater the cube sparser
 	//Vector3[] move;
-	public int currCubeIndex=5;//cube the player's in. <CubeNumber
 
 	public const int AdjoinCubeNum=1;
 
@@ -29,85 +27,16 @@ public class cube : MonoBehaviour {
 		public int adjoinNum;
 		//public adjoin * next;
 	};
-	adjoin[] adjoinCube;
-	public Material adjoinCubeMat,normalCubeMat;
-	public Component[] childrenMat;
+	public adjoin[] adjoinCube;
 
-	public GameInfo gameInfo=GameInfo.getInstance();
-
-	// Use this for initialization
-	void Start () {
-
-		InitializePos ();
-
-		for (int i = 0; i < CubeNumber; i++) {
-			cubes [i] = Instantiate (cubePrefab, pos [i], Quaternion.identity);
-			cubes [i].name = (i).ToString ();
-		}
-
-		//initialize GameInfo records
-		gameInfo.targetIdx = Mathf.CeilToInt (CubeNumber*Random.Range(0.01f,1.0f))-1;
-		Debug.Log (gameInfo.targetIdx);
-		gameInfo.target = cubes [gameInfo.targetIdx].transform.FindChild("Tree").gameObject;
-		gameInfo.target.SetActive (true);
-		gameInfo.isTargetFound = false;
-		gameInfo.isChooseEnabled = false;
-
-		gameInfo.lastUpdateTime = Time.time;
-		gameInfo.isMoving = true;
-		gameInfo.moves = 1;
-		gameInfo.periodNo = 0;
-		gameInfo.isShiftDone=new bool[CubeNumber*3];
-		for (int i = 0; i < CubeNumber; i++) {
-			for (int moves = 1; moves <= 3; moves++) {
-				gameInfo.isShiftDone [i * 3 + moves - 1] = false;
-			}
-		}
-
-		FindAdjoiningCubes ();
+	private static Cube instance = new Cube ();
+	private Cube(){}
+	public static Cube getInstance(){
+		return instance;
 	}
 
-	// Update is called once per frame
-	void Update () {
-		//Update positiion of cubes
-		gameInfo.currTime=Time.time;
-		if (gameInfo.isMoving==true) {
-			for (int i = 0; i < CubeNumber; i++) {
-				
-				cubes [i].transform.SetPositionAndRotation(Vector3.Lerp(shiftedPos[i*3+((gameInfo.moves-2)<0?2:(gameInfo.moves-2))],shiftedPos[i*3+gameInfo.moves-1],(gameInfo.currTime-gameInfo.lastUpdateTime)/GameInfo.shiftDuration),Quaternion.identity);
-			}
-		}
-		if (gameInfo.currTime - gameInfo.lastUpdateTime > GameInfo.shiftDuration + GameInfo.stillDuration) {
-			gameInfo.isMoving = true;
-			gameInfo.lastUpdateTime = gameInfo.currTime;
-			if (gameInfo.moves < 3) {
-				gameInfo.moves++;
-			} else {
-				gameInfo.moves = 1;
-				if(gameInfo.periodNo == 1){
-					gameInfo.periodNo++;
-				}
-			}
-		} else if (gameInfo.currTime - gameInfo.lastUpdateTime > GameInfo.shiftDuration && gameInfo.currTime - gameInfo.lastUpdateTime < GameInfo.shiftDuration + GameInfo.stillDuration) {
-			gameInfo.isMoving = false;
-		} else {
-			gameInfo.isMoving = true;
-		}
+	public void InitializePos(){
 
-		if (gameInfo.periodNo == 1) {
-			MarkConnectionsNShiftTarget (gameInfo.moves);
-		}if (gameInfo.periodNo == 2) {
-			RecoverMaterial ();
-		}
-
-		//tree is visible in the first period
-	}
-
-	void InitializePos(){
-		posParams = new int[9 * CubeNumber];
-		cubes = new GameObject[CubeNumber];
-		pos = new Vector3[CubeNumber];
-		shiftedPos = new Vector3[CubeNumber * 3];
 		for (int i = 0; i < CubeNumber; i++) {
 			do {
 				for (int j = 9 * i; j < 9 * i + 9; j++) {
@@ -169,10 +98,10 @@ public class cube : MonoBehaviour {
 
 			} while(isPosDuplicate || notWithinCube);//while(isPosDuplicate);
 		}
-		
+
 	}
-		
-	void FindAdjoiningCubes(){
+
+	public void FindAdjoiningCubes(){
 		adjoinCube = new adjoin[CubeNumber * 3];//for 3 move*cubeNumber
 
 		for (int i = 0; i < CubeNumber * 3; i++) {//initialization
@@ -190,7 +119,7 @@ public class cube : MonoBehaviour {
 		}
 	}
 
-	void FindCloserCube(int moves){
+	public void FindCloserCube(int moves){
 
 		float tempDist;
 
@@ -210,46 +139,5 @@ public class cube : MonoBehaviour {
 		}
 	}
 
-	void MarkConnectionsNShiftTarget(int moves){
-		for(int i=0;i<CubeNumber;i++){
-			//-----show adjoining cubes
-			if (gameInfo.isMoving) {
-				childrenMat = cubes [i].GetComponentsInChildren<MeshRenderer>();
-				foreach (MeshRenderer childMat in childrenMat)
-					childMat.material = normalCubeMat;
-			}else{//when not moving
-				if (adjoinCube [i * 3 + moves - 1].adjoinNum > 0) {//there exist adjoining cubes
-					for (int j = 0; j < adjoinCube [i * 3 + moves - 1].adjoinNum; j++) {
-						//change material
-						childrenMat = cubes [i].GetComponentsInChildren<MeshRenderer>();
-						foreach (MeshRenderer childMat in childrenMat) {
-							childMat.material = adjoinCubeMat;
-						}
 
-						//shift target
-						if(i==gameInfo.targetIdx&&gameInfo.isShiftDone[i*3+moves-1]==false){
-							gameInfo.targetIdx=adjoinCube [i * 3 + moves - 1].idx[j];
-							gameInfo.target = cubes [gameInfo.targetIdx].transform.FindChild("Tree").gameObject;
-							gameInfo.isShiftDone[i*3+moves-1]=true;
-							gameInfo.isShiftDone[adjoinCube [i * 3 + moves - 1].idx[j]*3+moves-1]=true;
-							Debug.Log (gameInfo.targetIdx);
-						}
-					}
-				} else {
-					childrenMat = cubes [i].GetComponentsInChildren<MeshRenderer>();
-					foreach (MeshRenderer childMat in childrenMat)
-						childMat.material = normalCubeMat;
-				}
-				
-			}
-		}
-	}
-	void RecoverMaterial ()
-	{
-		for (int i = 0; i < CubeNumber; i++) {
-			childrenMat = cubes [i].GetComponentsInChildren<MeshRenderer> ();
-			foreach (MeshRenderer childMat in childrenMat)
-				childMat.material = normalCubeMat;
-		}
-	}
 }
