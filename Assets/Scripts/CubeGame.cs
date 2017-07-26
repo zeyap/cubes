@@ -47,7 +47,7 @@ public class CubeGame : MonoBehaviour {
 			} else {
 				gameInfo.moves = 1;
 				if(gameInfo.phaseNo == 2){
-					if (gameInfo.travelPeriodNo == GameInfo.MaxTravelPeriodNo) {
+					if (gameInfo.travelPeriodNo == gameInfo.MaxTravelPeriodNo) {
 						gameInfo.phaseNo++;
 					} else {
 						gameInfo.travelPeriodNo++;

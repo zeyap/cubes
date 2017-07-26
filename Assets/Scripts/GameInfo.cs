@@ -14,13 +14,13 @@ public class GameInfo
 	public int moves;//1~3
 	public int phaseNo;//{Instructions,Travelling,Clicking};//0-"proceed",1-"play", 2-travelling, >=3-clicking
 	public int travelPeriodNo;
-	public const int MaxTravelPeriodNo=3;
+	public int MaxTravelPeriodNo=1;
 	public float lastUpdateTime,currTime;
 	public bool isMoving;
 	public const float stillDuration = 1.0f;
 	public const float shiftDuration = 1.0f;
 
-	public bool[] isShiftDone=new bool[Cube.CubeNumber*3*MaxTravelPeriodNo];
+	public bool[] isShiftDone=new bool[Cube.CubeNumber*3];
 
 	public bool needDestroyCubes;
 	public bool needReInstantiate;

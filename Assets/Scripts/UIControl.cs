@@ -12,6 +12,9 @@ public class UIControl : MonoBehaviour {
 
 	public Text cubeHit;
 
+	public Slider difficultySlider;
+	public Text difficulty;
+
 	// Use this for initialization
 	void Start () {
 		button = GameObject.Find ("Button").GetComponent<Button> ();
@@ -20,6 +23,9 @@ public class UIControl : MonoBehaviour {
 		restartBtn.onClick.AddListener(ClickToRestart);
 		btnText = GameObject.Find ("btnText").GetComponent<Text> ();
 		cubeHit = GameObject.Find ("cubeHit").GetComponent<Text> ();
+		difficultySlider = GameObject.Find ("difficultySlider").GetComponent<Slider> ();
+		difficultySlider.onValueChanged.AddListener (delegate{DifficultyChangeCheck();});
+		difficulty = difficultySlider.transform.FindChild ("difficulty").gameObject.GetComponent<Text> ();
 	}
 	
 	// Update is called once per frame
@@ -29,14 +35,14 @@ public class UIControl : MonoBehaviour {
 			gameInfo.PauseGame ();
 			button.gameObject.SetActive (true);
 			btnText.text = "Proceed";
-			cubeHit.text = "Given several cubes, organized in 3*3 space, with a tree in one of them; now please REMEMBER the position of each cube and the tree for later manipulation & recall";
+			cubeHit.text = "Given several cubes, organized in 3*3 space, with a tree in one of them\n\n"+"Now please REMEMBER the position of each cube and the tree for later manipulation & recall";
 			restartBtn.gameObject.SetActive (false);
 		}
 		else if(gameInfo.phaseNo == 1){
 			
 			button.gameObject.SetActive (true);
 			btnText.text = "Play";
-			cubeHit.text = "Tree in one cube will travel to the nearest one with an adjoining face [LATER indicated by both being marked GREEN]";
+			cubeHit.text = "After you press [Play], cubes will begin shifting\n\n"+"Tree in one cube will travel to the nearest one with an adjoining face, "+"which will later be indicated by both being marked [GREEN]";
 			restartBtn.gameObject.SetActive (false);
 		}
 		else if(gameInfo.phaseNo == 2){
@@ -60,13 +66,13 @@ public class UIControl : MonoBehaviour {
 
 				if (!gameInfo.isTargetFound) {
 					gameInfo.isChooseEnabled = true;
-					cubeHit.text = "NOW indicate the cube with tree by ONE CLICK on it";
+					cubeHit.text = "Now this is the same view as shown at beginning. Indicate the cube with tree by ONE CLICK on it";
 				}
-				restartBtn.gameObject.SetActive (true);
 			}
 			if (gameInfo.isTargetFound) {
 				gameInfo.isChooseEnabled = false;
 				cubeHit.text = "You've found the tree!";
+				restartBtn.gameObject.SetActive (true);
 			}
 		}
 	}
@@ -88,6 +94,11 @@ public class UIControl : MonoBehaviour {
 		if (gameInfo.phaseNo == 3) {//restart
 			gameInfo.Restart ();
 		}
+	}
+
+	void DifficultyChangeCheck(){
+		gameInfo.MaxTravelPeriodNo=(int)((difficultySlider.value)*5+1);
+		difficulty.text = "Difficulty: "+(gameInfo.MaxTravelPeriodNo).ToString()+" shifting / trial";
 	}
 
 
