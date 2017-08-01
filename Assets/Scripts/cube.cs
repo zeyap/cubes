@@ -6,12 +6,13 @@ public class Cube {
 
 	public GameInfo gameInfo=GameInfo.getInstance();
 
-	public const int CubeNumber=3;//constant members in c# are best defined as static members of a class/struct
-	public GameObject[] cubes= new GameObject[CubeNumber];
-	public GameObject[] trees= new GameObject[CubeNumber];
-	public Vector3[] pos = new Vector3[CubeNumber];
-	public Vector3[] shiftedPos = new Vector3[CubeNumber * 3];
-	public int[] posParams= new int[9 * CubeNumber]; //fixed size buffer fields may only be members of structs
+	public int CubeNumber=3;//constant members in c# are best defined as static members of a class/struct
+	public const int MaxCubeNumber=5;
+	public GameObject[] cubes= new GameObject[MaxCubeNumber];
+	public GameObject[] trees= new GameObject[MaxCubeNumber];
+	public Vector3[] pos = new Vector3[MaxCubeNumber];
+	public Vector3[] shiftedPos = new Vector3[MaxCubeNumber * 3];
+	public int[] posParams= new int[9 * MaxCubeNumber]; //fixed size buffer fields may only be members of structs
 	//if new every round, a stackoverflow may be caused
 	public bool isPosDuplicate=true;
 	public bool notWithinCube=true;
@@ -102,7 +103,7 @@ public class Cube {
 	}
 
 	public void FindAdjoiningCubes(){
-		adjoinCube = new adjoin[CubeNumber * 3];//for 3 move*cubeNumber
+		adjoinCube = new adjoin[MaxCubeNumber * 3];//for 3 move*cubeNumber
 
 		for (int i = 0; i < CubeNumber * 3; i++) {//initialization
 			adjoinCube [i].idx = new int[AdjoinCubeNum];

@@ -12,7 +12,13 @@ public class CubeGame : MonoBehaviour {
 	public GameInfo gameInfo=GameInfo.getInstance();
 	public Cube cube=Cube.getInstance();
 
+	private Transform auxiliaryCubeTransform;
+
 	// Use this for initialization
+	void Awake(){
+		auxiliaryCubeTransform=this.transform;
+	}
+
 	void Start () {
 		
 		cube.InitializePos ();
@@ -22,6 +28,7 @@ public class CubeGame : MonoBehaviour {
 		InstantiateCubes();
 
 		gameInfo.Init ();
+
 	}
 
 	// Update is called once per frame
@@ -63,16 +70,32 @@ public class CubeGame : MonoBehaviour {
 
 		//cubes move
 		if (gameInfo.isMoving==true) {
-			for (int i = 0; i < Cube.CubeNumber; i++) {
-				cube.cubes [i].transform.SetPositionAndRotation(Vector3.Lerp(cube.shiftedPos[i*3+((gameInfo.moves-2)<0?2:(gameInfo.moves-2))],cube.shiftedPos[i*3+gameInfo.moves-1],(gameInfo.currTime-gameInfo.lastUpdateTime)/GameInfo.shiftDuration),Quaternion.identity);
+			for (int i = 0; i < cube.CubeNumber; i++) {
+				//cube.cubes [i].transform.SetPositionAndRotation(Vector3.Lerp(cube.shiftedPos[i*3+((gameInfo.moves-2)<0?2:(gameInfo.moves-2))],cube.shiftedPos[i*3+gameInfo.moves-1],(gameInfo.currTime-gameInfo.lastUpdateTime)/GameInfo.shiftDuration),Quaternion.identity);
+				cube.cubes[i].transform.localPosition=auxiliaryCubeTransform.InverseTransformPoint(Vector3.Lerp(cube.shiftedPos[i*3+((gameInfo.moves-2)<0?2:(gameInfo.moves-2))],cube.shiftedPos[i*3+gameInfo.moves-1],(gameInfo.currTime-gameInfo.lastUpdateTime)/GameInfo.shiftDuration));
 			}
 		}
 
 		//Highlight adjoined cubes & Shift target tree when still
 		if (gameInfo.phaseNo == 2) {
 			MarkConnectionsNShiftTarget (gameInfo.moves);
-		}else if (gameInfo.phaseNo == 3) {
+		} else if (gameInfo.phaseNo == 3) {
 			UndoMark ();
+			if (gameInfo.hasPhase3Begun == false) {
+				if (gameInfo.moves == 3) {
+					gameInfo.hasPhase3Begun = true;
+					gameInfo.beginTime = Time.realtimeSinceStartup;
+				}
+			} else {
+				if (!gameInfo.isTargetFound) 
+					gameInfo.reactTime = Time.realtimeSinceStartup - gameInfo.beginTime;
+				//Time.time is inappropriate because frame freezes here
+			}
+
+
+		} else {
+			gameInfo.hasPhase3Begun = false;
+			gameInfo.reactTime = 0.0f;
 		}
 	}
 
@@ -80,7 +103,7 @@ public class CubeGame : MonoBehaviour {
 	public Component[] childrenMat;
 
 	public void MarkConnectionsNShiftTarget(int moves){
-		for(int i=0;i<Cube.CubeNumber;i++){
+		for(int i=0;i<cube.CubeNumber;i++){
 			//-----show adjoining cubes
 			if (gameInfo.isMoving) {
 				ChangeMaterial (i,normalCubeMat);
@@ -99,7 +122,6 @@ public class CubeGame : MonoBehaviour {
 							gameInfo.UpdateTarget(gameInfo.targetIdx);
 							gameInfo.isShiftDone[i*3+moves-1]=true;
 							gameInfo.isShiftDone[cube.adjoinCube [i * 3 + moves - 1].idx[j]*3+moves-1]=true;
-							Debug.Log (gameInfo.targetIdx);
 						}
 					}
 				} else {
@@ -112,7 +134,7 @@ public class CubeGame : MonoBehaviour {
 
 	public void UndoMark ()
 	{
-		for (int i = 0; i < Cube.CubeNumber; i++) {
+		for (int i = 0; i < cube.CubeNumber; i++) {
 			childrenMat = cube.cubes [i].GetComponentsInChildren<MeshRenderer> ();
 			foreach (MeshRenderer childMat in childrenMat)
 				childMat.material = normalCubeMat;
@@ -126,17 +148,26 @@ public class CubeGame : MonoBehaviour {
 		}
 	}
 
+	public Component[] childrenTransform;
 	void InstantiateCubes(){
-		for (int i = 0; i < Cube.CubeNumber; i++) {
-			cube.cubes [i] = Instantiate(cubePrefab, cube.pos [i], Quaternion.identity);
+		Debug.Log (cube.CubeNumber);
+		for (int i = 0; i < cube.CubeNumber; i++) {
+			cube.cubes [i] = Instantiate(cubePrefab, auxiliaryCubeTransform.InverseTransformPoint(cube.pos [i]), auxiliaryCubeTransform.rotation);
 			cube.cubes [i].name = (i).ToString ();
 			cube.trees [i] = cube.cubes [i].transform.FindChild ("Tree").gameObject;
+			//cube.cubes [i].transform.SetParent (auxiliaryCubeTransform,false);
+			cube.cubes[i].transform.parent = auxiliaryCubeTransform;
+
 		}
+		gameInfo.targetIdx = Mathf.CeilToInt (cube.CubeNumber*Random.Range(0.01f,1.0f))-1;
+		gameInfo.UpdateTarget (gameInfo.targetIdx);
+		gameInfo.target.SetActive (true);
+
 	}
 
 	void DestroyCubes(){
 		GameObject obj2Destroy;
-		for (int i = 0; i < Cube.CubeNumber; i++) {
+		for (int i = 0; i < cube.CubeNumber; i++) {
 			obj2Destroy = GameObject.Find ((i).ToString());
 			Destroy(obj2Destroy);
 		}
