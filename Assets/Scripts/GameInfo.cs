@@ -51,6 +51,7 @@ public class GameInfo
 		moves = 1;
 		phaseNo = 0;
 		hasPhase3Begun = false;
+		reactTime = 0.0f;
 		travelPeriodNo = 1;
 		UndoneShifts();
 

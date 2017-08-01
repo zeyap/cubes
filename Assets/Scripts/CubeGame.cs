@@ -24,6 +24,7 @@ public class CubeGame : MonoBehaviour {
 		cube.InitializePos ();
 		cube.FindAdjoiningCubes ();
 
+		AssignMaterials ();
 		//Instantiate cubes
 		InstantiateCubes();
 
@@ -95,18 +96,28 @@ public class CubeGame : MonoBehaviour {
 
 		} else {
 			gameInfo.hasPhase3Begun = false;
-			gameInfo.reactTime = 0.0f;
 		}
 	}
 
-	public Material adjoinCubeMat,normalCubeMat;
-	public Component[] childrenMat;
+	public Material adjoinCubeMat;
+	Material[] normalCubeMat=new Material[5];
+	Component[] childrenMat;
+	public Material mat0, mat1, mat2, mat3, mat4;
+
+	public void AssignMaterials(){
+		//assign different material
+		normalCubeMat [0] = mat0;
+		normalCubeMat [1] = mat1;
+		normalCubeMat [2] = mat2;
+		normalCubeMat [3] = mat3;
+		normalCubeMat [4] = mat4;
+	}
 
 	public void MarkConnectionsNShiftTarget(int moves){
 		for(int i=0;i<cube.CubeNumber;i++){
 			//-----show adjoining cubes
 			if (gameInfo.isMoving) {
-				ChangeMaterial (i,normalCubeMat);
+				ChangeMaterial (i,normalCubeMat[i]);
 			}else{//when not moving
 				if (cube.adjoinCube [i * 3 + moves - 1].adjoinNum > 0) {//there exist adjoining cubes
 					for (int j = 0; j < cube.adjoinCube [i * 3 + moves - 1].adjoinNum; j++) {
@@ -125,7 +136,7 @@ public class CubeGame : MonoBehaviour {
 						}
 					}
 				} else {
-					ChangeMaterial (i, normalCubeMat);
+					ChangeMaterial (i, normalCubeMat[i]);
 				}
 
 			}
@@ -135,34 +146,35 @@ public class CubeGame : MonoBehaviour {
 	public void UndoMark ()
 	{
 		for (int i = 0; i < cube.CubeNumber; i++) {
-			childrenMat = cube.cubes [i].GetComponentsInChildren<MeshRenderer> ();
-			foreach (MeshRenderer childMat in childrenMat)
-				childMat.material = normalCubeMat;
+			ChangeMaterial (i,normalCubeMat[i]);
 		}
 	}
 
 	public void ChangeMaterial(int idx,Material CubeMat){
 		childrenMat = cube.cubes [idx].GetComponentsInChildren<MeshRenderer>();
 		foreach (MeshRenderer childMat in childrenMat) {
-			childMat.material = CubeMat;
+			if(childMat.gameObject.tag!="Tree")
+				childMat.material = CubeMat;
 		}
 	}
 
 	public Component[] childrenTransform;
+	public Shader alphablendShader;
 	void InstantiateCubes(){
-		Debug.Log (cube.CubeNumber);
+		//instantiate cubes
 		for (int i = 0; i < cube.CubeNumber; i++) {
 			cube.cubes [i] = Instantiate(cubePrefab, auxiliaryCubeTransform.InverseTransformPoint(cube.pos [i]), auxiliaryCubeTransform.rotation);
+			ChangeMaterial (i,normalCubeMat[i]);
 			cube.cubes [i].name = (i).ToString ();
 			cube.trees [i] = cube.cubes [i].transform.FindChild ("Tree").gameObject;
 			//cube.cubes [i].transform.SetParent (auxiliaryCubeTransform,false);
 			cube.cubes[i].transform.parent = auxiliaryCubeTransform;
-
 		}
+
+		//set target
 		gameInfo.targetIdx = Mathf.CeilToInt (cube.CubeNumber*Random.Range(0.01f,1.0f))-1;
 		gameInfo.UpdateTarget (gameInfo.targetIdx);
 		gameInfo.target.SetActive (true);
-
 	}
 
 	void DestroyCubes(){

@@ -87,8 +87,8 @@ public class UIControl : MonoBehaviour {
 				cubeHit.text = "You've found the tree!";
 				restartBtn.gameObject.SetActive (true);
 			}
-			reactTime.text = gameInfo.reactTime.ToString ("##.000");
 		}
+		reactTime.text = gameInfo.reactTime.ToString ("##.000");
 	}
 
 	void OnClick(){
@@ -112,12 +112,12 @@ public class UIControl : MonoBehaviour {
 
 	void DifficultyChangeCheck(){
 		gameInfo.MaxTravelPeriodNo=(int)((difficultySlider.value)*5+1);
-		difficulty.text = (gameInfo.MaxTravelPeriodNo).ToString()+ "shifting / trial";
+		difficulty.text = (gameInfo.MaxTravelPeriodNo).ToString()+ " shifting / trial";
 	}
 
 	void CubeNumChangeCheck(){
 		gameInfo.CubeNumber=(int)((cubeNumberSlider.value)*2+3);
-		cubeNum.text = (gameInfo.CubeNumber).ToString()+ "cubes";
+		cubeNum.text = (gameInfo.CubeNumber).ToString()+ " cubes";
 	}
 
 
