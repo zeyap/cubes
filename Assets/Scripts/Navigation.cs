@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Navigation : MonoBehaviour {
+	float posx,posy;
+	float speedx,speedz;
 
-	public float rotateSpeed =30f;
+	public float rotateSpeed = 10;
 	//private Quaternion originalRotation;
 	private Vector3 originalPos;
 
-	float radius;
+	Vector3 speed;
 	Vector3 cameraOrientation;
-	float rot=0;
-	Vector3 cameraPos;
-	float t;
 
 	Vector2 scrollDelta;
 	Vector3 translateByScroll;
@@ -23,53 +22,38 @@ public class Navigation : MonoBehaviour {
 	void Start () {
 		auxiliaryCube = GameObject.Find ("auxiliaryCube");
 		originalPos=Camera.main.transform.localPosition;
-		cameraPos.y=Camera.main.transform.localPosition.y;
-
-		radius = Vector3.Distance (auxiliaryCube.transform.position,originalPos);
 	}
 
 	// Update is called once per frame
-	void FixedUpdate () {
+	void Update () {
 
 		scrollDelta = Input.mouseScrollDelta;
-		Camera.main.orthographicSize =Mathf.Clamp(Camera.main.orthographicSize-=scrollDelta.y,6.0f,20.0f);
-
-		/*
 		translateByScroll.x = -scrollDelta.y;
 		translateByScroll.z = scrollDelta.y;
 		translateByScroll.y = -scrollDelta.y;
 
 		Camera.main.transform.localPosition+=translateByScroll;//Translate (translateByScroll);
 		originalPos += translateByScroll;
-		*/
-
-		if (Input.GetMouseButton (1) == false) {
-			SnapBack ();
-			t = -1;
-		}
-
-		if (Input.GetMouseButton(1)) {
-			if (t == -1) {
-				t = 0;
-				rot =  Input.mousePosition.x>=0?1:(-1) * rotateSpeed * Mathf.Deg2Rad*Time.fixedDeltaTime;
-			}else{
-				//Debug.Log("Dragging");
-				//dead value 0.1, sensitivity 0.03, gravity 0
-
-				cameraPos.x = radius * Mathf.Cos(-rot);
-				cameraPos.z = radius * Mathf.Sin(-rot);
-				//Camera.main.transform.position = originalPos+cameraPos;
-				Camera.main.transform.localPosition = Vector3.Slerp (originalPos, originalPos + cameraPos, t);
-				t += 0.1f;
-			}
-		}
 
 		Camera.main.transform.LookAt(auxiliaryCube.transform);
+
+		if (Input.GetMouseButton(1) == false)
+			SnapBack();
+
+		if (Input.GetMouseButton(1)) {
+			//Debug.Log("Dragging");
+			float rotX = -Input.GetAxis("Mouse X") * rotateSpeed * Mathf.Deg2Rad;
+			float rotY = -Input.GetAxis("Mouse Y") * rotateSpeed * Mathf.Deg2Rad;
+			//dead value 0.1, sensitivity 0.01, gravity 0
+
+			Camera.main.transform.Translate(Vector3.right*rotX);
+			Camera.main.transform.Translate(Vector3.up* rotY);
+		}
 	}
 
 	void SnapBack() {
 
-		Camera.main.transform.localPosition = Vector3.Slerp(Camera.main.transform.position,originalPos,8*Time.deltaTime);
+		Camera.main.transform.localPosition = Vector3.Slerp(Camera.main.transform.position,originalPos,15*Time.deltaTime);
 	}
 
 }
