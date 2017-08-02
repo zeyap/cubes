@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Navigation : MonoBehaviour {
 
-	public float rotateSpeed =0.1f;
+	private float wx;
+	public float rotateSpeed;
 	//private Quaternion originalRotation;
 	private Vector3 originalPos;
 
 	float radius;
 	Vector3 cameraOrientation;
-	float rot=0;
+	float rot;
 	Vector3 cameraPos;
-	float t;
 
 	Vector2 scrollDelta;
 	Vector3 translateByScroll;
@@ -20,13 +20,20 @@ public class Navigation : MonoBehaviour {
 	GameObject auxiliaryCube;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 		auxiliaryCube = GameObject.Find ("auxiliaryCube");
 		originalPos=Camera.main.transform.localPosition;
-		cameraPos.y=Camera.main.transform.localPosition.y;
+		cameraPos.y = 0;//Camera.main.transform.position.y;
 
 		radius = Vector3.Distance (auxiliaryCube.transform.position,originalPos);
+		rotateSpeed=0.1f;
+
+		wx = Camera.main.pixelRect.center.x;
+
+
 	}
+
+	void Start(){}
 
 	// Update is called once per frame
 	void FixedUpdate () {
@@ -45,17 +52,17 @@ public class Navigation : MonoBehaviour {
 
 		if (Input.GetMouseButton (1) == false) {
 			SnapBack ();
-			t = -1;
+			rot = 0;
 		}
 
 		if (Input.GetMouseButton(1)) {
-			rot +=  (Input.mousePosition.x>=0?1:(-1)) * rotateSpeed * Mathf.Deg2Rad;
+			rot = rotateSpeed * Mathf.Deg2Rad*Time.fixedDeltaTime;//((Input.mousePosition.x-wx)>0?1:(-1)) *
 			//Debug.Log("Dragging");
 			//dead value 0.1, sensitivity 0.03, gravity 0
-
-			cameraPos.x = radius * Mathf.Cos(rot);
-			cameraPos.z = radius * Mathf.Sin(rot);
-			Camera.main.transform.position = originalPos+cameraPos;
+			cameraPos.x = radius * Mathf.Cos(-rot);
+			cameraPos.z = radius * Mathf.Sin(-rot);
+			Debug.Log(rot);
+			Camera.main.transform.Translate(cameraPos);
 		}
 
 		Camera.main.transform.LookAt(auxiliaryCube.transform);
