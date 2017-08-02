@@ -3,42 +3,52 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Navigation : MonoBehaviour {
+	float posx,posy;
+	float speedx,speedz;
 
 	public float rotateSpeed = 10;
 	//private Quaternion originalRotation;
 	private Vector3 originalPos;
 
-	float zoomByScroll;
+	Vector3 speed;
+	Vector3 cameraOrientation;
+
+	Vector2 scrollDelta;
+	Vector3 translateByScroll;
 
 	GameObject auxiliaryCube;
 
 	// Use this for initialization
-	void Awake () {
+	void Start () {
 		auxiliaryCube = GameObject.Find ("auxiliaryCube");
 		originalPos=Camera.main.transform.localPosition;
-	}
-	void Start(){
 	}
 
 	// Update is called once per frame
 	void Update () {
-		zoomByScroll=Input.mouseScrollDelta.y;
-		Camera.main.orthographicSize = Mathf.Clamp (Camera.main.orthographicSize -= zoomByScroll, 6.0f, 20.0f);
-		//Camera.main.orthographicSize-=zoomByScroll;
-		if (Input.GetMouseButton (1) == false) {
-			SnapBack ();
-		}
-		else if (Input.GetMouseButton(1)) {
-			//Debug.Log("Dragging");
-			float rotX = -Input.GetAxis("Mouse X") * rotateSpeed * Mathf.Deg2Rad;
-			//float rotY = -Input.GetAxis("Mouse Y") * rotateSpeed * Mathf.Deg2Rad;
-			//dead value 0.1, sensitivity 0.3, gravity 0
 
-			Camera.main.transform.Translate(Vector3.right*rotX);
-			//Camera.main.transform.Translate(Vector3.up* rotY);
-		}
+		scrollDelta = Input.mouseScrollDelta;
+		translateByScroll.x = -scrollDelta.y;
+		translateByScroll.z = scrollDelta.y;
+		translateByScroll.y = -scrollDelta.y;
+
+		Camera.main.transform.localPosition+=translateByScroll;//Translate (translateByScroll);
+		originalPos += translateByScroll;
 
 		Camera.main.transform.LookAt(auxiliaryCube.transform);
+
+		if (Input.GetMouseButton(1) == false)
+			SnapBack();
+
+		if (Input.GetMouseButton(1)) {
+			//Debug.Log("Dragging");
+			float rotX = -Input.GetAxis("Mouse X") * rotateSpeed * Mathf.Deg2Rad;
+			float rotY = -Input.GetAxis("Mouse Y") * rotateSpeed * Mathf.Deg2Rad;
+			//dead value 0.1, sensitivity 0.01, gravity 0
+
+			Camera.main.transform.Translate(Vector3.right*rotX);
+			Camera.main.transform.Translate(Vector3.up* rotY);
+		}
 	}
 
 	void SnapBack() {
