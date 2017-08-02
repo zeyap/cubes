@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Navigation : MonoBehaviour {
 
-	public float rotateSpeed =30f;
+	public float rotateSpeed =0.1f;
 	//private Quaternion originalRotation;
 	private Vector3 originalPos;
 
@@ -49,19 +49,13 @@ public class Navigation : MonoBehaviour {
 		}
 
 		if (Input.GetMouseButton(1)) {
-			if (t == -1) {
-				t = 0;
-				rot =  Input.mousePosition.x>=0?1:(-1) * rotateSpeed * Mathf.Deg2Rad*Time.fixedDeltaTime;
-			}else{
-				//Debug.Log("Dragging");
-				//dead value 0.1, sensitivity 0.03, gravity 0
+			rot +=  (Input.mousePosition.x>=0?1:(-1)) * rotateSpeed * Mathf.Deg2Rad;
+			//Debug.Log("Dragging");
+			//dead value 0.1, sensitivity 0.03, gravity 0
 
-				cameraPos.x = radius * Mathf.Cos(-rot);
-				cameraPos.z = radius * Mathf.Sin(-rot);
-				//Camera.main.transform.position = originalPos+cameraPos;
-				Camera.main.transform.localPosition = Vector3.Slerp (originalPos, originalPos + cameraPos, t);
-				t += 0.1f;
-			}
+			cameraPos.x = radius * Mathf.Cos(rot);
+			cameraPos.z = radius * Mathf.Sin(rot);
+			Camera.main.transform.position = originalPos+cameraPos;
 		}
 
 		Camera.main.transform.LookAt(auxiliaryCube.transform);
